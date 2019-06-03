@@ -48,12 +48,13 @@ try:
 		if b == "8" :
 			message = binascii.hexlify(msg.data);
 			message = str(message)[2:18]
-			print(message)
+			#print(message)
 			message_arbitration_id0 = hex(message_arbitration_id)[2:]
 			#print(message_arbitration_id0)
 			message_arbitration_id1 = message[:m]
 			#print(message_arbitration_id1)
 			message_arbitration_id = message_arbitration_id0 + message_arbitration_id1
+			print(message_arbitration_id)
 			#print(message_arbitration_id)
 			if len(message_arbitration_id) < 3:
 				message_arbitration_id = message_arbitration_id.zfill(3)
