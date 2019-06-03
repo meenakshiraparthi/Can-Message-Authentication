@@ -6,6 +6,7 @@ import os, binascii #to execute linux commands
 import can #for can utilities
 import time ##for sleep commands
 import hashlib ##hash library
+import binascii
 from Crypto.Cipher import AES #for crypto operations
 from textwrap import wrap
 try:
@@ -48,38 +49,46 @@ def genEncryption(key,IV,message_bytes):
 	#print("Cipher text Lenght :", len(ciphertext))
 	return ciphertext
 IV = "0000000000000000"	
+n = int(10)
 try:
-	while(1):
-		key = "0000000000000000"
-		# send 5 custom messages using python
-		#n = input("Enter the no.of values in hash chain")
-		n = int(10)
-		m = int(1)
-		keycopy = "0000000000000000"
-		stringArray = []
-		for i in range (0, n) :
-			hash = hashlib.sha256(keycopy.encode()).hexdigest()
-			hash = hash[:3]
-			stringArray.append(hash)
-			keycopy = hash
-		print(stringArray[n-1].encode())
-		print (stringArray)
+
+	key = "0000000000000000"
+	#n = input("Enter the no.of values in hash chain")
+	m = int(1)
+	keycopy = "0000000000000000"
+	stringArray = []
+	for i in range (0, n) :
+		hash = hashlib.sha256(keycopy.encode()).hexdigest()
+		hash = hash[:3]
+		stringArray.append(hash)
+		keycopy = hash
+	print(stringArray[n-1].encode())
+	print (stringArray)
+	print("sent")
+	#int(hex(stringArray[j]),16
+	for j in range(n-2, 3, -1):
+		print(j)
+		print(stringArray[j])
+		#stringArray[j] = "0x" + stringArray[j]
+		#print(stringArray[j][:2])
+		#print(stringArray[j][2:2+m])
+		a = int(stringArray[j][:2],16)
+		b = stringArray[j][2:2+m]
+		b = b + "0"
+		b = bytes.fromhex(b)
+		c = binascii.hexlify(b)
+		c = str(c)[2:4]
+		print(c)
+		print(b)
+		msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
+		bus.send(msg1)
+		time.sleep(0.2)
 		print("sent")
-		#int(hex(stringArray[j]),16
-		for j in range(n-2, 3, -1):
-			print(j)
-			print(stringArray[j])
-			#stringArray[j] = "0x" + stringArray[j]
-			#print(stringArray[j][:2])
-			#print(stringArray[j][2:2+m])
-			a = int(stringArray[j][:2],16)
-			b = stringArray[j].encode()[2:2+m]
-			print(b)
-			msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
-			bus.send(msg1)
-			time.sleep(0.2)
-			print("sent")
+
+	while(1):
+##key management
 		key = binascii.b2a_hex(os.urandom(8))
+##using SHA1 to get MAC and Encrption keys
 		encryptionKey = hashlib.sha1(stringArray[4].encode()).hexdigest()[:16]
 		#print(encryptionKey)
 		macKey = hashlib.sha1(encryptionKey.encode()).hexdigest()[:16]
@@ -99,54 +108,74 @@ try:
 		#print(macKeyOutput3)
 		#print(encryptionKeyOutput3)
 		#print("sent1")
+##sending first message
 		a = int(stringArray[3][:2],16)
 		b = stringArray[3][2:2+m]
 		b = b + "0"+encryptionKeyOutput1 + macKeyOutput1
-		b = toBinary(b)
-		b = bytearray(b.encode())
-		#b = [int(i) for i in b]
-
-		print("message: ", b)
-		msg2 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
-		bus.send(msg2)
-		time.sleep(0.2)
-		print("sent1")
-		a = int(stringArray[2][:2],16)
-		b = stringArray[2][2:2+m]
-		print("b", b)
-		b = b + "0" + encryptionKeyOutput2 + macKeyOutput2
-		b = toBinary(b)
-		print("message: ", b)
-		msg1 = can.Message(abitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
-		bus.send(msg1)
-		time.sleep(0.2)
-		
-		a = int(stringArray[1][:2],16)
-		b = stringArray[1][2:2+m]
-		b = b + "0" + encryptionKeyOutput3 + macKeyOutput3
-		b = b.encode()
-		print("message: ", b)
+		print("message: "+b)		
+		b = bytes.fromhex(b)
+		c = binascii.hexlify(b);
+		c = str(c)[2:18]
+		#print("C IS ", c);		
 		msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
 		bus.send(msg1)
 		time.sleep(0.2)
-		####hash generation
+		#print("sent1")
+##sending second message
+		a = int(stringArray[2][:2],16)
+		b = stringArray[2][2:2+m]
+		b = b + "0" + encryptionKeyOutput2 + macKeyOutput2
+		print("message: ", b)
+		b = bytes.fromhex(b)
+		msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
+		bus.send(msg1)
+		time.sleep(0.2)
+		#print("sent2")
+##sending third message		
+		a = int(stringArray[1][:2],16)
+		b = stringArray[1][2:2+m]
+		b = b + "0" + encryptionKeyOutput3 + macKeyOutput3
+		print("message: ", b)
+		b = bytes.fromhex(b)
+		msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
+		bus.send(msg1)
+		time.sleep(0.2)
+		#sent3
+####hash generation
+		n = 10
+		a = stringArray[0][:2]
+		print("public key arbitration id", a)
+		a = int(stringArray[0][:2],16)
+		b = stringArray[0][2:2+m]
+		b = b + "8" + "0"
+		stringArray = []
 		for i in range (0, n) :
 			hash = hashlib.sha256(keycopy.encode()).hexdigest()
 			hash = hash[:3]
 			stringArray.append(hash)
 			keycopy = hash
-		print(stringArray[n-1].encode())
-		print (stringArray)
-		##sending the public key
-		a = int(stringArray[0][:2],16)
-		b = stringArray[0][2:2+m]
-		b = b + "8" + stringArray[n-1]
-		b = b.encode()
-		print("message: ", b)
+		#print(stringArray[n-1].encode())
+		#print (stringArray)
+		b  = b + stringArray[n-1]
+		print("public key message: ", b)
+		b = bytes.fromhex(b)
+		
+##sending the public key
 		msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
 		bus.send(msg1)
 		time.sleep(0.2)
-				
+		for j in range(n-2, 3, -1):
+			print(j)
+			print(stringArray[j])
+			a = int(stringArray[j][:2],16)
+			b = stringArray[j][2:2+m]
+			b = b + "0"
+			b = bytes.fromhex(b)
+			print(b)
+			msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
+			bus.send(msg1)
+			time.sleep(0.2)
+			print("sent")		
 		
 		
 except KeyboardInterrupt:
