@@ -78,8 +78,8 @@ try:
 		b = bytes.fromhex(b)
 		c = binascii.hexlify(b)
 		c = str(c)[2:4]
-		print(c)
-		print(b)
+		#print(c)
+		#print(b)
 		msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
 		bus.send(msg1)
 		time.sleep(0.2)
@@ -88,8 +88,10 @@ try:
 	while(1):
 ##key management
 		key = binascii.b2a_hex(os.urandom(8))
-##using SHA1 to get MAC and Encrption keys
-		encryptionKey = hashlib.sha1(stringArray[4].encode()).hexdigest()[:16]
+		key = str(key)[2:18]
+		print("new secrete key is: ", key)#using SHA1 to get MAC and Encrption keys
+		encryptionKey = hashlib.sha1(stringArray[3].encode()).hexdigest()[:16]
+		print("encryption key is ", encryptionKey)
 		#print(encryptionKey)
 		macKey = hashlib.sha1(encryptionKey.encode()).hexdigest()[:16]
 		#print(macKey)
@@ -155,7 +157,7 @@ try:
 			stringArray.append(hash)
 			keycopy = hash
 		#print(stringArray[n-1].encode())
-		#print (stringArray)
+		print (stringArray)
 		b  = b + stringArray[n-1]
 		print("public key message: ", b)
 		b = bytes.fromhex(b)
@@ -171,7 +173,7 @@ try:
 			b = stringArray[j][2:2+m]
 			b = b + "0"
 			b = bytes.fromhex(b)
-			print(b)
+			#print(b)
 			msg1 = can.Message(arbitration_id= a ,is_fd = False, bitrate_switch = False ,data = b, extended_id = False)
 			bus.send(msg1)
 			time.sleep(0.2)
