@@ -42,9 +42,9 @@ try:
 		a = str(a)
 		
 		a = a[2:]
-		print("a is ", a)
+		#print("a is ", a)
 		b = a[1:2]
-		print("something is ", b)
+		#print("something is ", b)
 		if b == "8" :
 			message = binascii.hexlify(msg.data);
 			message = str(message)[2:18]
@@ -65,7 +65,7 @@ try:
 	
 			if verifier == hash_verifier :
 				hash_verifier = a[3:6]
-				print("new hash verifier : ", hash_verifier)
+				print("new public key  : ", hash_verifier)
 			else:
 				print("wrong public key")
 			#print(hash_verifier)
